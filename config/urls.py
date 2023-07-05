@@ -15,7 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
+from core.views import Dashboard
+admin.site.site_header = 'Olimpiadas - Administracion'
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', Dashboard.as_view())
 ]
