@@ -90,7 +90,7 @@ class Encuentro(models.Model):
     #puede ser solo de jugadores
     jugador_local = models.ForeignKey(
         Jugador, on_delete=models.CASCADE, related_name='encuentros_locales', null=True, blank=True)
-    jugador_visitante = models.ForeignKey(
+    judador_visitante = models.ForeignKey(
         Jugador, on_delete=models.CASCADE, related_name='encuentros_visitantes', null=True, blank=True)
 
     fecha = models.DateTimeField(blank=True, null=True)
@@ -116,23 +116,10 @@ class Encuentro(models.Model):
             return f"{self.jugador_local} vs {self.judador_visitante}"
 
     def save(self, *args, **kwargs):
-
+        super().save(*args, **kwargs)
         if self.finalizado:
             # Realizar el acumulado de puntos cuanto el encuentro finalice
             es_equipo = True if self.equipo_visitante and self.equipo_local else False
-            if self.resultado_local > self.resultado_visitante:
-                if es_equipo:
-                    self.equipo_ganador = self.equipo_local
-                else:
-                    self.jugador_ganador = self.jugador_local
-            elif self.resultado_local < self.resultado_visitante:
-                if es_equipo:
-                    self.equipo_ganador = self.equipo_visitante
-                else:
-                    self.jugador_ganador = self.jugador_visitante
-
-            super().save(*args, **kwargs)
-
             if self.resultado_local > self.resultado_visitante:
                 if es_equipo:
                     # Sumar puntos al equipo local
@@ -187,10 +174,6 @@ class Encuentro(models.Model):
                                                                     deporte=self.deporte)
                 depcolp2[0].puntos += self.puntos_empate
                 depcolp2[0].save()
-        else:
-            super().save(*args, **kwargs)
 
     class Admin(admin.ModelAdmin):
-        list_display = ['id', 'equipo_ganador', 'jugador_ganador', 'resultado_local', 'resultado_visitante',
-                        'finalizado']
-
+        list_display = ['id', 'equipo_ganador', 'jugador_ganador', 'resultado_local', 'resultado_visitante', 'finalizado']
