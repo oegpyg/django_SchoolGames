@@ -106,6 +106,7 @@ class Jugador(models.Model):
     class Admin(admin.ModelAdmin):
         list_display = ['id', 'nombre', 'equipo', 'color']
 
+
 class ColorDeportePuntos(models.Model):
     torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE)
     color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name="color")
@@ -122,12 +123,12 @@ class ColorDeportePuntos(models.Model):
 class Encuentro(models.Model):
     torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE)
     deporte = models.ForeignKey(Deporte, on_delete=models.CASCADE)
-    #puede equipo contra equipo
+    # puede equipo contra equipo
     equipo_local = models.ForeignKey(
         Equipo, on_delete=models.CASCADE, related_name='encuentros_locales', null=True, blank=True)
     equipo_visitante = models.ForeignKey(
         Equipo, on_delete=models.CASCADE, related_name='encuentros_visitantes', null=True, blank=True)
-    #puede ser solo de jugadores
+    # puede ser solo de jugadores
     jugador_local = models.ForeignKey(
         Jugador, on_delete=models.CASCADE, related_name='encuentros_locales', null=True, blank=True)
     jugador_visitante = models.ForeignKey(
@@ -137,7 +138,7 @@ class Encuentro(models.Model):
     lugar = models.CharField(max_length=100, blank=True)
     resultado_local = models.PositiveIntegerField(blank=True, null=True)
     resultado_visitante = models.PositiveIntegerField(blank=True, null=True)
-    #equipo o jugador ganador
+    # equipo o jugador ganador
     equipo_ganador = models.ForeignKey(Equipo, on_delete=models.CASCADE, blank=True, null=True,
                                        related_name='encuentros_e_ganados')
     jugador_ganador = models.ForeignKey(Jugador, on_delete=models.CASCADE, blank=True, null=True,
@@ -183,11 +184,11 @@ class Encuentro(models.Model):
                     self.jugador_local.color.aumentar_puntos(self.puntos_ganador)
                     self.jugador_ganador = self.jugador_local
                 tmpcolorL = self.equipo_local.color if es_equipo else self.jugador_local.color
-                depcolp = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
-                                                                   color=tmpcolorL,
-                                                                   deporte=self.deporte)
-                depcolp[0].puntos += self.puntos_ganador
-                depcolp[0].save()
+                depcolp, created = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
+                                                                            color=tmpcolorL,
+                                                                            deporte=self.deporte)
+                depcolp.puntos += self.puntos_ganador
+                depcolp.save()
             elif self.resultado_local < self.resultado_visitante:
                 if es_equipo:
                     # Sumar puntos al equipo visitante
@@ -198,11 +199,11 @@ class Encuentro(models.Model):
                     self.jugador_visitante.color.aumentar_puntos(self.puntos_ganador)
                     self.jugador_ganador = self.jugador_visitante
                 tmpcolorV = self.equipo_visitante.color if es_equipo else self.jugador_visitante.color
-                depcolp = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
-                                                                   color=tmpcolorV,
-                                                                   deporte=self.deporte)
-                depcolp[0].puntos += self.puntos_ganador
-                depcolp[0].save()
+                depcolp, created = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
+                                                                            color=tmpcolorV,
+                                                                            deporte=self.deporte)
+                depcolp.puntos += self.puntos_ganador
+                depcolp.save()
             else:
                 if es_equipo:
                     # Sumar punto a cada equipo por empate
@@ -215,22 +216,21 @@ class Encuentro(models.Model):
                     self.jugador_visitante.color.aumentar_puntos(self.puntos_empate)
 
                 tmpcolorL = self.equipo_local.color if es_equipo else self.jugador_local.color
-                depcolp = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
-                                                                   color=tmpcolorL,
-                                                                   deporte=self.deporte)
-                depcolp[0].puntos += self.puntos_empate
-                depcolp[0].save()
+                depcolp, created = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
+                                                                            color=tmpcolorL,
+                                                                            deporte=self.deporte)
+                depcolp.puntos += self.puntos_empate
+                depcolp.save()
 
                 tmpcolorV = self.equipo_local.color if es_equipo else self.jugador_local.color
-                depcolp2 = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
-                                                                    color=tmpcolorV,
-                                                                    deporte=self.deporte)
-                depcolp2[0].puntos += self.puntos_empate
-                depcolp2[0].save()
+                depcolp2, created = ColorDeportePuntos.objects.get_or_create(torneo=self.torneo,
+                                                                             color=tmpcolorV,
+                                                                             deporte=self.deporte)
+                depcolp2.puntos += self.puntos_empate
+                depcolp2.save()
         else:
             super().save(*args, **kwargs)
 
     class Admin(admin.ModelAdmin):
         list_display = ['id', 'equipo_ganador', 'jugador_ganador', 'resultado_local', 'resultado_visitante',
                         'finalizado']
-
