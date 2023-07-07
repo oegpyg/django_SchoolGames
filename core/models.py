@@ -1,5 +1,16 @@
 from django.db import models
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.http import urlencode
+from django.utils.html import format_html
+
+
+@admin.action(description='Activar Torneo', )
+def make_active(modeladmin, request, queryset):
+    queryset.update(activo=True) @ admin.action(description='Inactivar Torneo', )
+
+def make_inactive(modeladmin, request, queryset):
+    queryset.update(activo=False) @ admin.register(Torneo)
 
 
 class Torneo(models.Model):
@@ -7,9 +18,14 @@ class Torneo(models.Model):
     nombre = models.CharField(max_length=100)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
+    activo = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nombre
+
+    class Admin(admin.ModelAdmin):
+        list_display = ('nombre', 'fecha_inicio', 'fecha_fin', 'activo')
+        actions = [make_active, make_inactive]
 
 
 class Deporte(models.Model):
@@ -35,7 +51,29 @@ class Color(models.Model):
 
     class Admin(admin.ModelAdmin):
         list_filter = ['torneo']
-        list_display = ['id', 'nombre', 'puntos', 'torneo']
+        list_display = ['id', 'nombre', 'puntos', 'torneo', 'view_jugadores_link', 'view_equipos_link']
+
+        def view_jugadores_link(self, obj):
+            count = obj.color_jugador.count()
+            url = (
+                    reverse("admin:core_jugador_changelist")
+                    + "?"
+                    + urlencode({"color__id": f"{obj.id}"})
+            )
+            return format_html('<a href="{}">{} Jugadores</a>', url, count)
+
+        view_jugadores_link.short_description = "Jugadores"
+
+        def view_equipos_link(self, obj):
+            count = obj.colores.count()
+            url = (
+                    reverse("admin:core_equipo_changelist")
+                    + "?"
+                    + urlencode({"color__id": f"{obj.id}"})
+            )
+            return format_html('<a href="{}">{} Equipos</a>', url, count)
+
+        view_jugadores_link.short_description = "Equipos"
 
 
 class Equipo(models.Model):
@@ -52,6 +90,8 @@ class Equipo(models.Model):
     def aumentar_puntos(self, cantidad):
         self.puntos += cantidad
         self.save()
+
+    no_admin = False
 
 
 class Jugador(models.Model):

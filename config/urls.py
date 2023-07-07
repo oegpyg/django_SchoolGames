@@ -19,6 +19,7 @@ from core.views import Dashboard
 from django.conf.urls.static import static
 from django.conf import settings
 admin.site.site_header = 'Olimpiadas - Administracion'
+#admin.site.index_title = ""
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', Dashboard.as_view())
